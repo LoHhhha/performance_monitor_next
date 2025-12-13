@@ -1,0 +1,33 @@
+error_value = "NULL"
+
+outline_name = "Outline"
+cur_time = "Current Time"
+boot_time = "Boot Time"
+total_power = "Power"
+
+cpu_usage = "Usage"
+cpu_max_thread_usage = "Max Usage"
+cpu_thread_usage = "Thread Usage"
+cpu_temperature = "Temperature"
+cpu_power = "Power"
+cpu_clock = "Clock"
+cpu_fan_speed = "Fan Speed"
+cpu_voltage = "Voltage"
+
+memory_name = "Memory"
+memory_usage = "Usage"
+memory_detail = "Used"
+memory_swap_detail = "Swap Used"
+
+gpu_usage = "Usage"
+gpu_temperature = "Temperature"
+gpu_power = "Power"
+gpu_clock = "Clock"
+gpu_memory_clock = "Memory Clock"
+gpu_memory_detail = "Memory Used"
+gpu_memory_usage = "Memory Usage"
+gpu_fan_speed = "Fan Speed"
+
+network = "Network"
+upload = "Upload"
+download = "Download"

@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "performance_monitor"
+description = "Performance monitor in Windows."
+authors = [
+    { name = "0x4C48", email = "lohhhha@qq.com" },
+]
+requires-python = ">=3.11"
+dependencies = [
+    "nvidia-ml-py",
+    "pythonnet",
+    "tabulate",
+]
+version = "0.0.1.20251123"
+license = "Apache-2.0"
+
+[tool.setuptools]
+include-package-data = true
+packages = [
+    "performance_monitor",
+    "performance_monitor.third_party",
+    "performance_monitor.utils",
+    "performance_monitor.info_getter",
+    "performance_monitor.cmd",
+]
+
+[tool.setuptools.package-data]
+"performance_monitor" = [
+    # For third_party
+    "third_party/*.dll",
+]
