@@ -3,6 +3,7 @@ import os
 import time
 import argparse
 
+from performance_monitor import __version__
 from ..utils import tools, settings
 from ..cmd.combiner import Combiner
 
@@ -13,6 +14,7 @@ if __name__ == "__main__":
     arguments.add_argument("--exclude-nvidia-gpu", action="store_true", default=False)
     args = arguments.parse_args()
 
+    print(f"PerformanceMonitor-{__version__}")
     settings.reset(os.get_terminal_size().columns)
 
     combiner = Combiner(

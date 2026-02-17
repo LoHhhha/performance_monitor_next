@@ -15,7 +15,7 @@ dependencies = [
     "tabulate",
     "wcwidth",
 ]
-version = "0.0.1.20251123"
+dynamic = ["version"]
 license = "Apache-2.0"
 
 [tool.setuptools]
@@ -33,3 +33,6 @@ packages = [
     # For third_party
     "third_party/*.dll",
 ]
+
+[tool.setuptools.dynamic]
+version = {attr = "performance_monitor.__version__"}
