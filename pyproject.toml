@@ -13,6 +13,7 @@ dependencies = [
     "nvidia-ml-py",
     "pythonnet",
     "tabulate",
+    "wcwidth",
 ]
 version = "0.0.1.20251123"
 license = "Apache-2.0"

@@ -33,12 +33,13 @@ left_block = "|"
 right_block = "|"
 each_left_block = "["
 each_right_block = "]"
+clip_display = "…"
 
 
 def reset(col_size: int):
     col_size -= margin_len
     global max_key_len, max_val_len, block_len, rate_display
-    max_key_len = col_size // 3
+    max_key_len = min(col_size // 3, 20)
     max_val_len = col_size - max_key_len
 
     block_len = max_val_len - block_margin_len

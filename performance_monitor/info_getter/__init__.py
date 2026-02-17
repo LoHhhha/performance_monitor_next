@@ -5,3 +5,4 @@ from performance_monitor.info_getter.general_gpu_info import GeneralGpuInformati
 from performance_monitor.info_getter.memory_info import MemoryInformation
 from performance_monitor.info_getter.net_info import NetworkInformation
 from performance_monitor.info_getter.time_info import TimeInformation
+from performance_monitor.info_getter.frame_time_info import FrameTimeInformation

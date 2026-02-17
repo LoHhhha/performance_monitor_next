@@ -1,3 +1,4 @@
+import atexit
 import os
 import time
 import argparse
@@ -18,6 +19,9 @@ if __name__ == "__main__":
         general_gpu_enable=not args.exclude_general_gpu,
         nv_gpu_enable=not args.exclude_nvidia_gpu,
     )
+
+    # close all after unexpected exit
+    atexit.register(combiner.close)
 
     print("\033[?25l")
     while True:

@@ -4,6 +4,8 @@ outline_name = "Outline"
 cur_time = "Current Time"
 boot_time = "Boot Time"
 total_power = "Power"
+fps = "FPS"
+fps_1_low = "FPS 1%Low"
 
 cpu_usage = "Usage"
 cpu_max_thread_usage = "Max Usage"
