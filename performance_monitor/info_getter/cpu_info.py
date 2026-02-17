@@ -52,29 +52,19 @@ class CpuInformation(GeneralHardware):
 
                 for sensor in hardware.Sensors:
                     if sensor.SensorType == SensorType.Temperature:
-                        if '#' in sensor.Name:
-                            self.temperature.append(
-                                self.get_value(sensor.Value)
-                            )
+                        if "#" in sensor.Name:
+                            self.temperature.append(self.get_value(sensor.Value))
                     elif sensor.SensorType == SensorType.Clock:
-                        if '#' in sensor.Name:
-                            self.clock.append(
-                                self.get_value(sensor.Value)
-                            )
+                        if "#" in sensor.Name:
+                            self.clock.append(self.get_value(sensor.Value))
                     elif sensor.SensorType == SensorType.Load:
-                        if '#' in sensor.Name:
-                            self.load.append(
-                                self.get_value(sensor.Value)
-                            )
-                        elif 'TOTAL' in str(sensor.Name).upper():
-                            self.usage.append(
-                                self.get_value(sensor.Value)
-                            )
+                        if "#" in sensor.Name:
+                            self.load.append(self.get_value(sensor.Value))
+                        elif "TOTAL" in str(sensor.Name).upper():
+                            self.usage.append(self.get_value(sensor.Value))
                     elif sensor.SensorType == SensorType.Voltage:
-                        if '#' in sensor.Name:
-                            self.voltage.append(
-                                self.get_value(sensor.Value)
-                            )
+                        if "#" in sensor.Name:
+                            self.voltage.append(self.get_value(sensor.Value))
                     elif sensor.SensorType == SensorType.Power:
                         if "CPU PACKAGE" in str(sensor.Name).upper():
                             self.power += self.get_value(sensor.Value)

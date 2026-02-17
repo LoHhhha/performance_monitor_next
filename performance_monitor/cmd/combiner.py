@@ -1,9 +1,8 @@
 import time
 from typing import Tuple, List, Optional
 
-from ..utils import settings
-from ..utils import strings
-from ..utils import tools
+from . import settings, tools
+from ..assets import strings
 from ..info_getter import CpuInformation
 from ..info_getter import MemoryInformation
 from ..info_getter import NetworkInformation
@@ -23,9 +22,9 @@ class Combiner:
     frame_time: FrameTimeInformation
 
     def __init__(
-            self,
-            general_gpu_enable: bool = True,
-            nv_gpu_enable: bool = True,
+        self,
+        general_gpu_enable: bool = True,
+        nv_gpu_enable: bool = True,
     ):
         print("Collecting Information...")
         self.time = TimeInformation()
@@ -47,9 +46,9 @@ class Combiner:
 
     def get_total_power(self) -> float:
         return (
-                self.cpu.power +
-                (tools.get_sum(self.nv_gpu.power) if self.nv_gpu else 0) +
-                (tools.get_sum(self.gpu.power) if self.gpu else 0)
+            self.cpu.power
+            + (tools.get_sum(self.nv_gpu.power) if self.nv_gpu else 0)
+            + (tools.get_sum(self.gpu.power) if self.gpu else 0)
         )
 
     def outline_info(self) -> Tuple[str, List[Tuple[str, str]]]:
@@ -79,114 +78,136 @@ class Combiner:
         )
 
     def memory_info(self) -> Tuple[str, List[Tuple[str, str]]]:
-        return strings.memory_name, tools.get_table([
-            tools.get_tuple(
-                strings.memory_usage,
-                tools.get_rate_display(self.memory.physical_memory_usage),
-            ),
-            tools.get_tuple(
-                strings.memory_detail,
-                tools.get_pair_display(
-                    f"{self.memory.used_physical_memory // settings.byte2mb:.0f}",
-                    f"{self.memory.total_physical_memory // settings.byte2mb:.0f}",
-                    settings.mb_postfix
+        return strings.memory_name, tools.get_table(
+            [
+                tools.get_tuple(
+                    strings.memory_usage,
+                    tools.get_rate_display(self.memory.physical_memory_usage),
                 ),
-            ),
-            tools.get_tuple(
-                strings.memory_swap_detail,
-                tools.get_pair_display(
-                    f"{self.memory.used_swap_memory // settings.byte2mb:.0f}",
-                    f"{self.memory.total_swap_memory // settings.byte2mb:.0f}",
-                    settings.mb_postfix
+                tools.get_tuple(
+                    strings.memory_detail,
+                    tools.get_pair_display(
+                        f"{self.memory.used_physical_memory // settings.byte2mb:.0f}",
+                        f"{self.memory.total_physical_memory // settings.byte2mb:.0f}",
+                        settings.mb_postfix,
+                    ),
                 ),
-            ),
-        ])
+                tools.get_tuple(
+                    strings.memory_swap_detail,
+                    tools.get_pair_display(
+                        f"{self.memory.used_swap_memory // settings.byte2mb:.0f}",
+                        f"{self.memory.total_swap_memory // settings.byte2mb:.0f}",
+                        settings.mb_postfix,
+                    ),
+                ),
+            ]
+        )
 
     def cpu_info(self) -> Tuple[str, List[Tuple[str, str]]]:
-        return self.cpu.cpu_name[0], tools.get_table([
-            tools.get_tuple(
-                strings.cpu_clock,
-                f"{tools.get_max(self.cpu.clock):.0f}{settings.clock_postfix}"
-            ),
-            tools.get_tuple(
-                strings.cpu_voltage,
-                f"{tools.get_max(self.cpu.voltage):.3f}{settings.voltage_postfix}"
-            ),
-            tools.get_tuple(
-                strings.cpu_power,
-                f"{self.cpu.power:.0f}{settings.power_postfix}"
-            ),
-            tools.get_tuple(
-                strings.cpu_temperature,
-                tools.get_temperature_display(tools.get_max(self.cpu.temperature), "cpu")
-            ),
-            tools.get_tuple(
-                strings.cpu_usage,
-                tools.get_rate_display(tools.get_avg(self.cpu.usage))
-            ),
-            tools.get_tuple(
-                strings.cpu_max_thread_usage,
-                tools.get_rate_display(tools.get_max(self.cpu.load))
-            ),
-            tools.get_tuple(
-                strings.cpu_thread_usage,
-                tools.get_each_usage(self.cpu.load),
-                clip_val=False,
-            ),
-        ])
+        return self.cpu.cpu_name[0], tools.get_table(
+            [
+                tools.get_tuple(
+                    strings.cpu_clock,
+                    f"{tools.get_max(self.cpu.clock):.0f}{settings.clock_postfix}",
+                ),
+                tools.get_tuple(
+                    strings.cpu_voltage,
+                    f"{tools.get_max(self.cpu.voltage):.3f}{settings.voltage_postfix}",
+                ),
+                tools.get_tuple(
+                    strings.cpu_power, f"{self.cpu.power:.0f}{settings.power_postfix}"
+                ),
+                tools.get_tuple(
+                    strings.cpu_temperature,
+                    tools.get_temperature_display(
+                        tools.get_max(self.cpu.temperature), "cpu"
+                    ),
+                ),
+                tools.get_tuple(
+                    strings.cpu_usage,
+                    tools.get_rate_display(tools.get_avg(self.cpu.usage)),
+                ),
+                tools.get_tuple(
+                    strings.cpu_max_thread_usage,
+                    tools.get_rate_display(tools.get_max(self.cpu.load)),
+                ),
+                tools.get_tuple(
+                    strings.cpu_thread_usage,
+                    tools.get_each_usage(self.cpu.load),
+                    clip_val=False,
+                ),
+            ]
+        )
 
     @classmethod
-    def gpu_info(cls, gpu_info, sub_class: str="general") -> List[Tuple[str, List[Tuple[str, str]]]]:
-        return list([(gpu_info.gpu_names[gpu_idx], tools.get_table([
-            tools.get_tuple(
-                strings.gpu_clock,
-                f"{gpu_info.core_clock[gpu_idx]:.0f}{settings.clock_postfix}"
-            ),
-            tools.get_tuple(
-                strings.gpu_memory_clock,
-                f"{gpu_info.memory_clock[gpu_idx]:.0f}{settings.clock_postfix}"
-            ),
-            tools.get_tuple(
-                strings.gpu_power,
-                tools.get_pair_display(
-                    f"{gpu_info.power[gpu_idx]:.0f}",
-                    f"{gpu_info.available_power[gpu_idx]:.0f}",
-                    settings.power_postfix
-                ),
-            ),
-            tools.get_tuple(
-                strings.gpu_memory_detail,
-                tools.get_pair_display(
-                    f"{gpu_info.used_memory[gpu_idx] // settings.byte2mb:.0f}",
-                    f"{gpu_info.available_memory[gpu_idx] // settings.byte2mb:.0f}",
-                    settings.mb_postfix
-                ),
-            ),
-            tools.get_tuple(
-                strings.gpu_temperature,
-                tools.get_temperature_display(gpu_info.temperature[gpu_idx], f"gpu-{sub_class}-{gpu_idx}")
-            ),
-            tools.get_tuple(
-                strings.gpu_usage,
-                tools.get_rate_display(gpu_info.usage[gpu_idx])
-            ),
-            tools.get_tuple(
-                strings.gpu_memory_usage,
-                tools.get_rate_display(gpu_info.memory_usage[gpu_idx])
-            ),
-        ])) for gpu_idx in range(gpu_info.gpu_count)])
+    def gpu_info(
+        cls, gpu_info, sub_class: str = "general"
+    ) -> List[Tuple[str, List[Tuple[str, str]]]]:
+        return list(
+            [
+                (
+                    gpu_info.gpu_names[gpu_idx],
+                    tools.get_table(
+                        [
+                            tools.get_tuple(
+                                strings.gpu_clock,
+                                f"{gpu_info.core_clock[gpu_idx]:.0f}{settings.clock_postfix}",
+                            ),
+                            tools.get_tuple(
+                                strings.gpu_memory_clock,
+                                f"{gpu_info.memory_clock[gpu_idx]:.0f}{settings.clock_postfix}",
+                            ),
+                            tools.get_tuple(
+                                strings.gpu_power,
+                                tools.get_pair_display(
+                                    f"{gpu_info.power[gpu_idx]:.0f}",
+                                    f"{gpu_info.available_power[gpu_idx]:.0f}",
+                                    settings.power_postfix,
+                                ),
+                            ),
+                            tools.get_tuple(
+                                strings.gpu_memory_detail,
+                                tools.get_pair_display(
+                                    f"{gpu_info.used_memory[gpu_idx] // settings.byte2mb:.0f}",
+                                    f"{gpu_info.available_memory[gpu_idx] // settings.byte2mb:.0f}",
+                                    settings.mb_postfix,
+                                ),
+                            ),
+                            tools.get_tuple(
+                                strings.gpu_temperature,
+                                tools.get_temperature_display(
+                                    gpu_info.temperature[gpu_idx],
+                                    f"gpu-{sub_class}-{gpu_idx}",
+                                ),
+                            ),
+                            tools.get_tuple(
+                                strings.gpu_usage,
+                                tools.get_rate_display(gpu_info.usage[gpu_idx]),
+                            ),
+                            tools.get_tuple(
+                                strings.gpu_memory_usage,
+                                tools.get_rate_display(gpu_info.memory_usage[gpu_idx]),
+                            ),
+                        ]
+                    ),
+                )
+                for gpu_idx in range(gpu_info.gpu_count)
+            ]
+        )
 
     def network_info(self) -> Tuple[str, List[Tuple[str, str]]]:
-        return strings.network, tools.get_table([
-            tools.get_tuple(
-                strings.upload,
-                f"{self.network.upload / settings.byte2mb:.2f}{settings.mb_per_postfix}"
-            ),
-            tools.get_tuple(
-                strings.download,
-                f"{self.network.download / settings.byte2mb:.2f}{settings.mb_per_postfix}"
-            )
-        ])
+        return strings.network, tools.get_table(
+            [
+                tools.get_tuple(
+                    strings.upload,
+                    f"{self.network.upload / settings.byte2mb:.2f}{settings.mb_per_postfix}",
+                ),
+                tools.get_tuple(
+                    strings.download,
+                    f"{self.network.download / settings.byte2mb:.2f}{settings.mb_per_postfix}",
+                ),
+            ]
+        )
 
     def get_info(self) -> List[Tuple[str, List[Tuple[str, str]]]]:
         self.update()

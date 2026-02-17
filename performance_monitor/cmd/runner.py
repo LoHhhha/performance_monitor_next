@@ -4,12 +4,12 @@ import time
 import argparse
 
 from performance_monitor import __version__
-from ..utils import tools, settings
-from ..cmd.combiner import Combiner
+from . import tools, settings
+from .combiner import Combiner
 
 if __name__ == "__main__":
     arguments = argparse.ArgumentParser()
-    arguments.add_argument("-ft", "--flush_time", default=0.8)
+    arguments.add_argument("-ft", "--flush_time", type=float, default=0.8)
     arguments.add_argument("--exclude-general-gpu", action="store_true", default=False)
     arguments.add_argument("--exclude-nvidia-gpu", action="store_true", default=False)
     args = arguments.parse_args()

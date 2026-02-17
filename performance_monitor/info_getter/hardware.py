@@ -6,16 +6,13 @@ class GeneralHardware(abc.ABC):
     SensorValue: str = "SensorValue"
 
     @abc.abstractmethod
-    def clear(self):
-        ...
+    def clear(self): ...
 
     @abc.abstractmethod
-    def dispose(self):
-        ...
+    def dispose(self): ...
 
     @abc.abstractmethod
-    def update(self):
-        ...
+    def update(self): ...
 
     def sensors(self):
         sensors_dict = {}
@@ -23,7 +20,10 @@ class GeneralHardware(abc.ABC):
             if not issubclass(cls, GeneralHardware):
                 continue
             for key, value_cls in cls.__annotations__.items():
-                if value_cls.__name__ == Annotated.__name__ and GeneralHardware.SensorValue in value_cls.__metadata__:
+                if (
+                    value_cls.__name__ == Annotated.__name__
+                    and GeneralHardware.SensorValue in value_cls.__metadata__
+                ):
                     sensors_dict.setdefault(key, getattr(self, key))
 
         return sensors_dict

@@ -34,8 +34,12 @@ class NetworkInformation(GeneralHardware):
         net_info = psutil.net_io_counters()
         current_time = time.time()
         if self._prev_time >= 0:
-            self.upload = (net_info.bytes_sent - self._prev_bytes_sent) / (current_time - self._prev_time)
-            self.download = (net_info.bytes_recv - self._prev_bytes_recv) / (current_time - self._prev_time)
+            self.upload = (net_info.bytes_sent - self._prev_bytes_sent) / (
+                current_time - self._prev_time
+            )
+            self.download = (net_info.bytes_recv - self._prev_bytes_recv) / (
+                current_time - self._prev_time
+            )
 
         self._prev_time = current_time
         self._prev_bytes_sent = net_info.bytes_sent

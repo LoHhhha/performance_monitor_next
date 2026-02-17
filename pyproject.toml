@@ -14,6 +14,7 @@ dependencies = [
     "pythonnet",
     "tabulate",
     "wcwidth",
+    "psutil",
 ]
 dynamic = ["version"]
 license = "Apache-2.0"
@@ -22,8 +23,8 @@ license = "Apache-2.0"
 include-package-data = true
 packages = [
     "performance_monitor",
+    "performance_monitor.assets",
     "performance_monitor.third_party",
-    "performance_monitor.utils",
     "performance_monitor.info_getter",
     "performance_monitor.cmd",
 ]
@@ -32,6 +33,7 @@ packages = [
 "performance_monitor" = [
     # For third_party
     "third_party/*.dll",
+    "third_party/*.exe",
 ]
 
 [tool.setuptools.dynamic]

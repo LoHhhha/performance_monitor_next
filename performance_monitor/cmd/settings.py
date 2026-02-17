@@ -1,4 +1,8 @@
-color_chose = ["\033[33m", "\033[0m"]
+class colors:
+    title = "\033[33m"
+    hint = "\033[1;33m"
+    warning = "\033[33m"
+    END = "\033[0m"
 
 max_key_len = 15
 max_val_len = 27

@@ -5,8 +5,10 @@ from .hardware import GeneralHardware
 
 
 class NvidiaGpuInformation(GeneralHardware):
+    PYNVML_AVAILABLE: bool = True
+
     gpu_count: Annotated[int, GeneralHardware.SensorValue]
-    gpu_names: Annotated[List[str], GeneralHardware.SensorValue] = []
+    gpu_names: Annotated[List[str], GeneralHardware.SensorValue]
     available_memory: Annotated[List[int], GeneralHardware.SensorValue]
     used_memory: Annotated[List[int], GeneralHardware.SensorValue]
     memory_usage: Annotated[List[float], GeneralHardware.SensorValue]
@@ -24,11 +26,16 @@ class NvidiaGpuInformation(GeneralHardware):
 
         print("Nvidia GPU Initialization:")
         self.gpu_count = 0
+        self.gpu_names = []
         self._handles = []
         try:
             pynvml.nvmlInit()
         except Exception as e:
             print(f"\tCould not found Nvidia GPU, due to {e}")
+            NvidiaGpuInformation.PYNVML_AVAILABLE = False
+            return
+
+        # initialize handles
         self.gpu_count = pynvml.nvmlDeviceGetCount()
         for gpu_id in range(self.gpu_count):
             gpu_handle = pynvml.nvmlDeviceGetHandleByIndex(gpu_id)
@@ -50,18 +57,28 @@ class NvidiaGpuInformation(GeneralHardware):
 
     def update(self):
         self.clear()
+        if not NvidiaGpuInformation.PYNVML_AVAILABLE:
+            return
 
-        for gpu_handle in self._handles:
-            mem_info = pynvml.nvmlDeviceGetMemoryInfo(gpu_handle)
-            self.available_memory.append(mem_info.total)
-            self.used_memory.append(mem_info.used)
-            self.memory_usage.append((mem_info.used / mem_info.total) * 100)
-            self.usage.append(pynvml.nvmlDeviceGetUtilizationRates(gpu_handle).gpu)
-            self.power.append(pynvml.nvmlDeviceGetPowerUsage(gpu_handle) / 1000)
-            self.available_power.append(pynvml.nvmlDeviceGetEnforcedPowerLimit(gpu_handle) / 1000)
-            self.temperature.append(pynvml.nvmlDeviceGetTemperatureV(gpu_handle, 0))
-            self.core_clock.append(pynvml.nvmlDeviceGetClockInfo(gpu_handle, 0))
-            self.memory_clock.append(pynvml.nvmlDeviceGetClockInfo(gpu_handle, 2))
+        try:
+            for gpu_handle in self._handles:
+                mem_info = pynvml.nvmlDeviceGetMemoryInfo(gpu_handle)
+                self.available_memory.append(mem_info.total)
+                self.used_memory.append(mem_info.used)
+                self.memory_usage.append((mem_info.used / mem_info.total) * 100)
+                self.usage.append(pynvml.nvmlDeviceGetUtilizationRates(gpu_handle).gpu)
+                self.power.append(pynvml.nvmlDeviceGetPowerUsage(gpu_handle) / 1000)
+                self.available_power.append(
+                    pynvml.nvmlDeviceGetEnforcedPowerLimit(gpu_handle) / 1000
+                )
+                self.temperature.append(pynvml.nvmlDeviceGetTemperatureV(gpu_handle, 0))
+                self.core_clock.append(pynvml.nvmlDeviceGetClockInfo(gpu_handle, 0))
+                self.memory_clock.append(pynvml.nvmlDeviceGetClockInfo(gpu_handle, 2))
+        except Exception as _:
+            NvidiaGpuInformation.PYNVML_AVAILABLE = False
+            self.gpu_count = 0
+            self.gpu_names = []
+            self.clear()
 
     @classmethod
     def dispose(cls):

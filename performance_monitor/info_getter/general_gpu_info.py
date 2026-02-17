@@ -11,7 +11,7 @@ from LibreHardwareMonitor.Hardware import HardwareType, SensorType
 
 class GeneralGpuInformation(GeneralHardware):
     gpu_count: Annotated[int, GeneralHardware.SensorValue]
-    gpu_names: Annotated[List[str], GeneralHardware.SensorValue] = []
+    gpu_names: Annotated[List[str], GeneralHardware.SensorValue]
     available_memory: Annotated[List[int], GeneralHardware.SensorValue]
     used_memory: Annotated[List[int], GeneralHardware.SensorValue]
     memory_usage: Annotated[List[float], GeneralHardware.SensorValue]
@@ -24,6 +24,7 @@ class GeneralGpuInformation(GeneralHardware):
 
     def __init__(self):
         self.clear()
+        self.gpu_names = []
         self._gpus: List[Hardware.IHardware] = []
 
         self.computer = Hardware.Computer()
@@ -34,6 +35,7 @@ class GeneralGpuInformation(GeneralHardware):
         for hardware in self.computer.Hardware:
             if hardware.HardwareType != HardwareType.GpuNvidia:
                 self._gpus.append(hardware)
+                self.gpu_names.append(hardware.Name)
                 print(f"\tFound: {hardware.Name}")
 
         self.gpu_count = len(self._gpus)
@@ -62,7 +64,6 @@ class GeneralGpuInformation(GeneralHardware):
 
         for gpu in self._gpus:
             gpu.Update()
-            self.gpu_names.append(gpu.Name)
 
             metrics = {
                 "available_memory": 0,
@@ -93,7 +94,11 @@ class GeneralGpuInformation(GeneralHardware):
                     elif "MEMORY" in sensor_name:
                         metrics["memory_usage"] = self._safe_value(sensor.Value)
                 elif s_type == SensorType.Power:
-                    if "TOTAL" in sensor_name or "GPU" in sensor_name or "CORE" in sensor_name:
+                    if (
+                        "TOTAL" in sensor_name
+                        or "GPU" in sensor_name
+                        or "CORE" in sensor_name
+                    ):
                         metrics["power"] = self._safe_value(sensor.Value)
                 elif s_type in (SensorType.SmallData, SensorType.Data):
                     if "MEMORY TOTAL" in sensor_name:
@@ -106,7 +111,9 @@ class GeneralGpuInformation(GeneralHardware):
                         )
 
             if metrics["available_memory"] > 0 and metrics["used_memory"] >= 0:
-                metrics["memory_usage"] = (metrics["used_memory"] // metrics["available_memory"]) * 100
+                metrics["memory_usage"] = (
+                    metrics["used_memory"] / metrics["available_memory"]
+                ) * 100
 
             self.available_memory.append(metrics["available_memory"])
             self.used_memory.append(metrics["used_memory"])

@@ -2,3 +2,4 @@ nvidia-ml-py
 pythonnet
 tabulate
 wcwidth
+psutil
