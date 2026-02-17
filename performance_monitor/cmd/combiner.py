@@ -44,34 +44,52 @@ class Combiner:
         print("Initialization Complete.")
         time.sleep(2)
 
-    def get_total_power(self) -> float:
+    def _get_total_power(self) -> float:
         return (
             self.cpu.power
             + (tools.get_sum(self.nv_gpu.power) if self.nv_gpu else 0)
             + (tools.get_sum(self.gpu.power) if self.gpu else 0)
         )
 
+    def _get_fps_str(self) -> str:
+        if self.frame_time.fps is None or self.frame_time.fps_1_low is None:
+            fps = strings.error_value
+        else:
+            fps = f"{self.frame_time.fps}({self.frame_time.fps_1_low})"
+        return fps
+
     def outline_info(self) -> Tuple[str, List[Tuple[str, str]]]:
         return strings.outline_name, tools.get_table(
             [
                 tools.get_tuple(
-                    strings.total_power,
-                    f"{self.get_total_power():.0f}{settings.power_postfix}",
+                    strings.time,
+                    tools.get_pair_display(
+                        self.time.time.strftime("%H:%M:%S"),
+                        self.time.time.strftime("%a %b.%d"),
+                        sep="",
+                        clip_able=False,
+                    ),
                 ),
                 tools.get_tuple(
                     strings.fps,
-                    f"{self.frame_time.fps if self.frame_time.fps is not None else 'N/A'}",
-                ),
-                tools.get_tuple(
-                    strings.fps_1_low,
                     tools.get_pair_display(
-                        f"{self.frame_time.fps_1_low if self.frame_time.fps_1_low is not None else 'N/A'}",
+                        self._get_fps_str(),
                         (
                             self.frame_time.target_process
                             if self.frame_time.target_process
-                            else "-"
+                            else "UNKNOWN"
                         ),
                         sep="@ ",
+                    ),
+                ),
+                tools.get_tuple(
+                    strings.total_power,
+                    tools.get_trend_display(
+                        self._get_total_power(),
+                        trend_id="total_power",
+                        prefix=settings.power_postfix,
+                        lowest=20,
+                        highest=180,
                     ),
                 ),
             ]
@@ -119,8 +137,12 @@ class Combiner:
                 ),
                 tools.get_tuple(
                     strings.cpu_temperature,
-                    tools.get_temperature_display(
-                        tools.get_max(self.cpu.temperature), "cpu"
+                    tools.get_trend_display(
+                        tools.get_max(self.cpu.temperature),
+                        trend_id="cpu",
+                        prefix=settings.temperature_postfix,
+                        lowest=30,
+                        highest=100,
                     ),
                 ),
                 tools.get_tuple(
@@ -175,9 +197,12 @@ class Combiner:
                             ),
                             tools.get_tuple(
                                 strings.gpu_temperature,
-                                tools.get_temperature_display(
+                                tools.get_trend_display(
                                     gpu_info.temperature[gpu_idx],
-                                    f"gpu-{sub_class}-{gpu_idx}",
+                                    trend_id=f"gpu-{sub_class}-{gpu_idx}",
+                                    prefix=settings.temperature_postfix,
+                                    lowest=30,
+                                    highest=100,
                                 ),
                             ),
                             tools.get_tuple(
@@ -200,11 +225,11 @@ class Combiner:
             [
                 tools.get_tuple(
                     strings.upload,
-                    f"{self.network.upload / settings.byte2mb:.2f}{settings.mb_per_postfix}",
+                    tools.get_byte_speed_display(self.network.upload),
                 ),
                 tools.get_tuple(
                     strings.download,
-                    f"{self.network.download / settings.byte2mb:.2f}{settings.mb_per_postfix}",
+                    tools.get_byte_speed_display(self.network.download),
                 ),
             ]
         )

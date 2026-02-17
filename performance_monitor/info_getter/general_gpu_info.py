@@ -5,8 +5,8 @@ from ..third_party import LHM_dll_path
 from .hardware import GeneralHardware
 
 clr.AddReference(LHM_dll_path)
-from LibreHardwareMonitor import Hardware
-from LibreHardwareMonitor.Hardware import HardwareType, SensorType
+from LibreHardwareMonitor import Hardware  # type: ignore
+from LibreHardwareMonitor.Hardware import HardwareType, SensorType  # type: ignore
 
 
 class GeneralGpuInformation(GeneralHardware):

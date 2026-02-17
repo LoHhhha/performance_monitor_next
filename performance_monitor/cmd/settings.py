@@ -4,6 +4,7 @@ class colors:
     warning = "\033[33m"
     END = "\033[0m"
 
+
 max_key_len = 15
 max_val_len = 27
 margin_len = 7  # 7 is table format as "| key | value |"
@@ -15,17 +16,21 @@ rate_display = [
     for i in range(21)
 ]
 
-temp_display = [" ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
+trend_display = [" ", "▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"]
 usage_display = [" ", "▏", "▎", "▎", "▌", "▋", "▊", "▉", "█"]
 
 time_fmt = "%Y/%m/%d %H:%M:%S"
 
 tabulate_table_style = "pretty"
-byte2mb = 1024 * 1024
-byte2kb = 1024
+k_base = 1024
+byte2mb = k_base * k_base
+byte2kb = k_base
 mb_postfix = "MiB"
-mb_per_postfix = "MiBps"
-kb_per_postfix = "KiBps"
+byte_speed_postfixes = [
+    "KiBps",
+    "MiBps",
+    "GiBps",
+]
 power_postfix = "W"
 rate_postfix = "%"
 voltage_postfix = "V"

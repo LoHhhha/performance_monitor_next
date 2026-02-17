@@ -86,29 +86,41 @@ def wrap_color_by_threshold(s: str, val: int, l0: int = 80, l1: int = 50):
     return s
 
 
-def get_pair_display(value, other_value, postfix="", sep: str = "()"):
-    left = f"{other_value}{postfix}"
+def get_pair_display(
+    value: str, other_value: str, postfix="", sep: str = "()", clip_able: bool = True
+):
+    left = other_value
     right = f"{value}{postfix}"
 
-    n = (
-        settings.max_val_len
-        - get_display_width(left)
-        - get_display_width(right)
-        - min(get_display_width(sep), 2)
+    no_left_width = (
+        get_display_width(postfix)
+        + get_display_width(right)
+        + min(get_display_width(sep), 2)
     )
+
+    # when it's too long, we will clip left value first since it's usually less important
+    n = settings.max_val_len - get_display_width(left) - no_left_width
     if n < 0:
-        no_left_width = get_display_width(right) + min(get_display_width(sep), 2)
-        left = get_clipped_string(left, settings.max_val_len - no_left_width)
+        if clip_able:
+            left = get_clipped_string(left, settings.max_val_len - no_left_width)
+        else:
+            left = ""
         n = settings.max_val_len - get_display_width(left) - no_left_width
+    # if still too long after clipping, we will return settings.clip_display to indicate the value is too long to display
     if n < 0:
-        return ""
+        return settings.clip_display
+
+    # if left is "", we will only display right value and postfix
+    if not left:
+        return rjust_display(right, settings.max_val_len)
 
     l_sep = sep[0] if len(sep) > 0 else ""
     r_sep = sep[1] if len(sep) > 1 else ""
-    return f"{l_sep}{left}{r_sep}{' ' * max(0, n)}{right}"
+    return f"{l_sep}{left}{postfix}{r_sep}{' ' * max(0, n)}{right}"
 
 
 def get_rate_display(usage: float):
+    # warnings: usage should be in range [0, 100], and will be clipped to this range if it's out of range.
     return (
         settings.left_block
         + wrap_color_by_threshold(
@@ -121,32 +133,41 @@ def get_rate_display(usage: float):
     )
 
 
-def get_temperature_display(temperature: float, temperature_id: str):
-    if not hasattr(get_temperature_display, "prev_temperature_info_dict"):
-        get_temperature_display.prev_temperature_info_dict = defaultdict(
+def get_trend_display(
+    current_value: float,
+    trend_id: str,
+    prefix: str = "",
+    lowest: float = 30,
+    highest: float = 100,
+):
+    # warnings: len(prefix) must be <=1, or it will clip to 1 character
+    # warnings: lowest should be < highest, or it will set highest to lowest + 1 to avoid division by zero
+    prefix = prefix[:1]
+    if not hasattr(get_trend_display, "prev_trend_info_dict"):
+        get_trend_display.prev_trend_info_dict = defaultdict(
             lambda: [" " for _ in range(settings.block_len)]
         )
-    prev_info = get_temperature_display.prev_temperature_info_dict[temperature_id]
+    prev_info = get_trend_display.prev_trend_info_dict[trend_id]
     if len(prev_info) != settings.block_len:
-        prev_info = get_temperature_display.prev_temperature_info_dict[
-            temperature_id
-        ] = [" " for _ in range(settings.block_len)]
+        prev_info = get_trend_display.prev_trend_info_dict[trend_id] = [
+            " " for _ in range(settings.block_len)
+        ]
 
-    n = len(settings.temp_display) - 1
-    # <=30 is the lowest, >=100 is the highest
-    cur_temperature_block = settings.temp_display[
-        min(max(0, int((temperature - 30) * n / 70)), n)
+    n = len(settings.trend_display) - 1
+    if lowest >= highest:
+        highest = lowest + 1
+    cur_trend_block = settings.trend_display[
+        min(max(0, int((current_value - lowest) * n / (highest - lowest))), n)
     ]
 
-    prev_info.insert(0, cur_temperature_block)
+    prev_info.insert(0, cur_trend_block)
     prev_info.pop()
 
     return (
         settings.left_block
         + str.join("", prev_info)
         + settings.right_block
-        + f"{int(temperature):4d}"
-        + settings.temperature_postfix
+        + rjust_display(f"{int(current_value):4d}{prefix}", 5)
     )
 
 
@@ -204,6 +225,15 @@ def get_each_usage(cpu_usage: List, usage_each_line: Optional[int] = None):
         cur.append(get_simple_usage_display(int((cpu_usage[i]))))
     res += get_line(cur)
     return res
+
+
+def get_byte_speed_display(byte_amount: float):
+    speed = byte_amount
+    for postfix in settings.byte_speed_postfixes:
+        speed /= settings.k_base
+        if speed < settings.k_base:
+            return f"{speed:.2f}{postfix}"
+    return f"{speed:.2f}{settings.byte_speed_postfixes[-1]}"
 
 
 def get_key_string(_key: str, clip_key: bool = True):
