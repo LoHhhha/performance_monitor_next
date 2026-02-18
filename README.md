@@ -62,8 +62,9 @@ python -m performance_monitor.cmd.runner -ft 1.0
 
 Below are examples of the performance monitor running in different terminal widths. The layout automatically adapts to the available space.
 
-![Wide Terminal View](./assets/example_fat.png)
-_Wide terminal view showing expanded layout_
+<p align="center">
+  <img src="./assets/example_fat.png" alt="Wide Terminal View" height="320" />
+  <img src="./assets/example_thin.png" alt="Narrow Terminal View" height="320" />
+</p>
 
-![Narrow Terminal View](./assets/example_thin.png)
-_Narrow terminal view showing compact layout_
+<p align="center"><em>Wide terminal view showing expanded layout · Narrow terminal view showing compact layout</em></p>
