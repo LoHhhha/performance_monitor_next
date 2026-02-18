@@ -33,9 +33,9 @@ def rjust_display(s: str, target_width: int):
 
 
 def get_title(s: str):
-    colored = settings.colors.title + s + settings.colors.END
+    title = settings.title_suffix + s
     width = settings.max_key_len + settings.max_val_len + settings.margin_len
-    return ljust_display(colored, width)
+    return settings.colors.title + ljust_display(title, width) + settings.colors.END
 
 
 def get_table(info_list: List):
@@ -252,17 +252,17 @@ def get_tuple(_key: str, _val: str, clip_key: bool = True, clip_val: bool = True
     return get_key_string(_key, clip_key), get_val_string(_val, clip_val)
 
 
-def info_display(info: List[Tuple[str, List[Tuple[str, str]]]]):
+def info_display(info: List[Tuple[str, List[Tuple[str, str]]]]) -> bool:
+    # return True if display successfully
+    # otherwise return False and clean the screen
+
     if not hasattr(info_display, "pre_terminal_col_size"):
         info_display.pre_terminal_col_size = 0
         info_display.pre_terminal_row_size = 0
 
-    out = "\n".join(f"{get_title(group)}\n{tables}" for group, tables in info)
-
+    # if terminal size changed, we will reset the settings and clear the screen to avoid display issues
     cur_terminal_col_size = os.get_terminal_size().columns
     cur_terminal_row_size = os.get_terminal_size().lines
-
-    print("\x1b[0;0H", end="")
     if (
         cur_terminal_row_size != info_display.pre_terminal_row_size
         or cur_terminal_col_size != info_display.pre_terminal_col_size
@@ -270,5 +270,10 @@ def info_display(info: List[Tuple[str, List[Tuple[str, str]]]]):
         info_display.pre_terminal_col_size = cur_terminal_col_size
         info_display.pre_terminal_row_size = cur_terminal_row_size
         settings.reset(cur_terminal_col_size)
+        os.system("cls")
+        return False
 
+    out = "\n".join(f"{get_title(group)}\n{tables}" for group, tables in info)
+    print("\x1b[0;0H", end="")
     print(out, end="")
+    return True

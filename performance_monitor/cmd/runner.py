@@ -1,5 +1,6 @@
 import atexit
 import os
+import platform
 import time
 import argparse
 
@@ -14,7 +15,9 @@ if __name__ == "__main__":
     arguments.add_argument("--exclude-nvidia-gpu", action="store_true", default=False)
     args = arguments.parse_args()
 
-    print(f"PerformanceMonitor-{__version__}")
+    print(f"Package: performance_monitor-{__version__}")
+    print(f"OS: {platform.platform()}")
+
     settings.reset(os.get_terminal_size().columns)
 
     combiner = Combiner(
@@ -27,5 +30,6 @@ if __name__ == "__main__":
 
     print("\033[?25l")
     while True:
-        tools.info_display(combiner.get_info())
-        time.sleep(args.flush_time)
+        # if display failed, we will clear the screen and try to display again
+        if tools.info_display(combiner.get_info()):
+            time.sleep(args.flush_time)

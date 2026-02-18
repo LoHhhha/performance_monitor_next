@@ -1,5 +1,5 @@
 class colors:
-    title = "\033[33m"
+    title = "\033[7m"
     hint = "\033[1;33m"
     warning = "\033[33m"
     END = "\033[0m"
@@ -43,6 +43,7 @@ right_block = "|"
 each_left_block = "["
 each_right_block = "]"
 clip_display = "…"
+title_suffix = " + "
 
 
 def reset(col_size: int):
