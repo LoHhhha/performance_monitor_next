@@ -37,13 +37,13 @@ voltage_postfix = "V"
 temperature_postfix = "C"
 clock_postfix = "MHz"
 fan_postfix = "RPM"
-bound_sep = " of "
 left_block = "|"
 right_block = "|"
 each_left_block = "["
 each_right_block = "]"
 clip_display = "…"
 title_suffix = " + "
+omitted_fmt = "{} of {}"
 
 
 def reset(col_size: int):

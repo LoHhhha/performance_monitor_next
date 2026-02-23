@@ -1,4 +1,4 @@
-__version__ = "0.0.2.20260218"
+__version__ = "0.0.2.20260223"
 
 import performance_monitor.assets
 import performance_monitor.third_party

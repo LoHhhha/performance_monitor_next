@@ -32,6 +32,13 @@ def rjust_display(s: str, target_width: int):
     return " " * pad + s
 
 
+def center_display(s: str, target_width: int):
+    pad = max(0, target_width - get_display_width(s))
+    left_pad = pad // 2
+    right_pad = pad - left_pad
+    return " " * left_pad + s + " " * right_pad
+
+
 def get_title(s: str):
     title = settings.title_suffix + s
     width = settings.max_key_len + settings.max_val_len + settings.margin_len
@@ -273,7 +280,24 @@ def info_display(info: List[Tuple[str, List[Tuple[str, str]]]]) -> bool:
         os.system("cls")
         return False
 
-    out = "\n".join(f"{get_title(group)}\n{tables}" for group, tables in info)
+    out = list(f"{get_title(group)}\n{tables}" for group, tables in info)
+
+    group_lines = [item.count("\n") + 1 for item in out]
+    sum_lines = sum(group_lines)
+    if sum_lines > cur_terminal_row_size:
+        # reserve one line for omitted tips when the info is too much to display
+        # at least keep one group to display
+        while sum_lines + 1 > cur_terminal_row_size and len(out) > 1:
+            out.pop()
+            sum_lines -= group_lines.pop()
+
+        out.append(
+            center_display(
+                settings.omitted_fmt.format(len(out), len(info)),
+                cur_terminal_col_size,
+            )
+        )
+
     print("\x1b[0;0H", end="")
-    print(out, end="")
+    print("\n".join(out), end="")
     return True
