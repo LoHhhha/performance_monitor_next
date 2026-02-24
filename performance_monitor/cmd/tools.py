@@ -49,19 +49,27 @@ def get_table(info_list: List):
     return tabulate.tabulate(info_list, tablefmt=settings.tabulate_table_style)
 
 
-def get_sum(values: List):
+def get_sum(values: List) -> float:
+    if not values:
+        return 0.0
     return sum(values)
 
 
-def get_max(values: List):
+def get_max(values: List) -> float:
+    if not values:
+        return 0.0
     return max(values)
 
 
-def get_min(values: List):
+def get_min(values: List) -> float:
+    if not values:
+        return 0.0
     return min(values)
 
 
-def get_avg(values: List):
+def get_avg(values: List) -> float:
+    if not values:
+        return 0.0
     return get_sum(values) / len(values)
 
 

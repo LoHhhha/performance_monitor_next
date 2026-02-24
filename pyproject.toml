@@ -27,6 +27,7 @@ packages = [
     "performance_monitor.third_party",
     "performance_monitor.info_getter",
     "performance_monitor.cmd",
+    "performance_monitor.server",
 ]
 
 [tool.setuptools.package-data]

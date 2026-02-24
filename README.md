@@ -1,70 +1,89 @@
 # Performance Monitor Next
 
-A lightweight, real-time system performance monitoring tool for Windows, built with Python. It provides detailed insights into your hardware's status directly in the terminal.
+A lightweight, real-time system performance monitor for Windows, built with Python.
+It provides hardware and runtime metrics directly in your terminal or through an HTTP API.
 
 ## Features
 
-- **CPU Monitoring**: Real-time tracking of CPU temperature, clock speed, usage, load, voltage, and power consumption.
-- **GPU Monitoring**:
-  - Supports general GPU monitoring via LibreHardwareMonitor.
-  - Dedicated support for NVIDIA GPUs using NVML for detailed metrics.
-- **Memory Monitoring**: Tracks physical memory and swap memory usage.
-- **Network Monitoring**: Monitors network activity.
-- **Real-time Updates**: continuously updates the display with configurable refresh rates.
-- **CLI Interface**: Simple and efficient command-line interface.
+- **CPU monitoring**: temperature, clock, usage, load, voltage, and power.
+- **GPU monitoring**:
+  - General GPU metrics via LibreHardwareMonitor.
+  - NVIDIA GPU metrics via NVML.
+- **Memory monitoring**: physical memory and swap usage.
+- **Network monitoring**: real-time network activity.
+- **Frame-time monitoring**: rendering/frame-time insights.
+- **Live updates**: configurable refresh interval.
+- **CLI + Server modes**: terminal dashboard or HTTP endpoint.
 
 ## Requirements
 
-- **Operating System**: Windows (due to `LibreHardwareMonitor` and `pythonnet` dependency).
-- **Python**: Version 3.11 or higher.
-- **Permissions**: Administrator privileges are required to access hardware sensors.
+- **Operating system**: Windows (depends on `LibreHardwareMonitor` and `pythonnet`).
+- **Python**: 3.11 or higher.
+- **Permissions**: run as Administrator to access all hardware sensors.
 
 ## Installation
 
-1.  **Clone the repository:**
+```bash
+git clone https://github.com/LoHhhha/performance_monitor_next.git
+cd performance_monitor_next
+pip install .
+```
 
-    ```bash
-    git clone https://github.com/LoHhhha/performance_monitor_next.git
-    cd performance_monitor_next
-    ```
+## Quick Start
 
-2.  **Install:**
-
-    ```bash
-    pip install .
-    ```
-
-## Usage
-
-To start the performance monitor, run the following command from the project root:
+### Run as Terminal Dashboard
 
 ```bash
 python -m performance_monitor.cmd.runner
 ```
 
-### Command Line Arguments
+Useful arguments:
 
-You can customize the behavior using the following arguments:
+- `-ft`, `--flush_time`: refresh interval in seconds (default: `0.8`).
+- `--exclude-general-gpu`: disable general GPU monitoring.
+- `--exclude-nvidia-gpu`: disable NVIDIA GPU monitoring.
 
-- `-ft`, `--flush_time`: Set the refresh interval in seconds (default: 0.8).
-- `--exclude-general-gpu`: Disable general GPU monitoring.
-- `--exclude-nvidia-gpu`: Disable NVIDIA GPU monitoring.
-
-**Example:**
-
-Run with a 1-second refresh rate:
+Example:
 
 ```bash
 python -m performance_monitor.cmd.runner -ft 1.0
 ```
 
+### Run as HTTP Server
+
+```bash
+python -m performance_monitor.server.runner
+```
+
+Useful arguments:
+
+- `-p`, `--port`: server port (default: `54321`).
+- `--host`: host address (default: `127.0.0.1`).
+- `--path`: metrics path (default: `/info`).
+
+Example (serve at `http://127.0.0.1:8000/info`):
+
+```bash
+python -m performance_monitor.server.runner --host 127.0.0.1 -p 8000 --path /info
+```
+
 ## Screenshots
 
-Below are examples of the performance monitor running in different terminal widths. The layout automatically adapts to the available space.
+The layout adapts automatically to terminal width.
 
 <p align="center">
   <img src="./assets/example_fat.png" alt="Wide Terminal View" height="320" />
   <img src="./assets/example_thin.png" alt="Narrow Terminal View" height="320" />
 </p>
 
-<p align="center"><em>Wide terminal view showing expanded layout · Narrow terminal view showing compact layout</em></p>
+<p align="center"><em>Wide terminal view · Narrow terminal view</em></p>
+
+## Troubleshooting
+
+- **No sensor data / missing values**: run the terminal as Administrator.
+- **GPU fields are empty**: ensure GPU drivers are installed and supported.
+- **`pythonnet`/hardware access issues**: verify Python version and reinstall dependencies.
+
+## Notes
+
+- This project is Windows-focused by design due to hardware dependency constraints.

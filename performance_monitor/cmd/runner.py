@@ -26,7 +26,7 @@ if __name__ == "__main__":
     )
 
     # close all after unexpected exit
-    atexit.register(combiner.close)
+    atexit.register(combiner.dispose)
 
     print("\033[?25l")
     while True:

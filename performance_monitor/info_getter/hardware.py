@@ -1,5 +1,5 @@
 import abc
-from typing import Annotated
+from typing import Annotated, get_origin as get_origin_cls
 
 
 class GeneralHardware(abc.ABC):
@@ -18,12 +18,12 @@ class GeneralHardware(abc.ABC):
         sensors_dict = {}
         for cls in self.__class__.__mro__:
             if not issubclass(cls, GeneralHardware):
-                continue
+                break
             for key, value_cls in cls.__annotations__.items():
                 if (
-                    value_cls.__name__ == Annotated.__name__
+                    get_origin_cls(value_cls) is Annotated
                     and GeneralHardware.SensorValue in value_cls.__metadata__
                 ):
-                    sensors_dict.setdefault(key, getattr(self, key))
+                    sensors_dict[key] = getattr(self, key)
 
-        return sensors_dict
+        return {"type": self.__class__.__name__, "sensors": sensors_dict}

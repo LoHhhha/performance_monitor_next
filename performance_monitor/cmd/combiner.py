@@ -1,22 +1,26 @@
+from datetime import datetime
 import time
-from typing import Tuple, List, Optional
+from typing import Optional, Tuple, List
 
 from . import settings, tools
 from ..assets import strings
-from ..info_getter import CpuInformation
-from ..info_getter import MemoryInformation
-from ..info_getter import NetworkInformation
-from ..info_getter import NvidiaGpuInformation
-from ..info_getter import GeneralGpuInformation
-from ..info_getter import TimeInformation
-from ..info_getter import FrameTimeInformation
+from ..info_getter import (
+    TimeInformation,
+    CpuInformation,
+    GeneralGpuInformation,
+    NvidiaGpuInformation,
+    MemoryInformation,
+    NetworkInformation,
+    FrameTimeInformation,
+    Combiner as BaseCombiner,
+)
 
 
-class Combiner:
+class Combiner(BaseCombiner):
     time: TimeInformation
     cpu: CpuInformation
-    nv_gpu: Optional[NvidiaGpuInformation]
     gpu: Optional[GeneralGpuInformation]
+    nv_gpu: Optional[NvidiaGpuInformation]
     memory: MemoryInformation
     network: NetworkInformation
     frame_time: FrameTimeInformation
@@ -26,27 +30,22 @@ class Combiner:
         general_gpu_enable: bool = True,
         nv_gpu_enable: bool = True,
     ):
-        print("Collecting Information...")
-        self.time = TimeInformation()
-        self.cpu = CpuInformation()
-        if general_gpu_enable:
-            self.gpu = GeneralGpuInformation()
-        else:
-            self.gpu = None
-        if nv_gpu_enable:
-            self.nv_gpu = NvidiaGpuInformation()
-        else:
-            self.nv_gpu = None
-        self.memory = MemoryInformation()
-        self.network = NetworkInformation()
-        self.frame_time = FrameTimeInformation()
-
-        print("Initialization Complete.")
+        super().__init__(
+            getters_dict={
+                "time": TimeInformation,
+                "cpu": CpuInformation,
+                "gpu": GeneralGpuInformation if general_gpu_enable else None,
+                "nv_gpu": NvidiaGpuInformation if nv_gpu_enable else None,
+                "memory": MemoryInformation,
+                "network": NetworkInformation,
+                "frame_time": FrameTimeInformation,
+            }
+        )
         time.sleep(2)
 
     def _get_total_power(self) -> float:
         return (
-            self.cpu.power
+            tools.get_sum(self.cpu.power)
             + (tools.get_sum(self.nv_gpu.power) if self.nv_gpu else 0)
             + (tools.get_sum(self.gpu.power) if self.gpu else 0)
         )
@@ -59,13 +58,14 @@ class Combiner:
         return fps
 
     def outline_info(self) -> Tuple[str, List[Tuple[str, str]]]:
+        time_datetime = datetime.fromtimestamp(self.time.time)
         return strings.outline_name, tools.get_table(
             [
                 tools.get_tuple(
                     strings.time,
                     tools.get_pair_display(
-                        self.time.time.strftime("%H:%M:%S"),
-                        self.time.time.strftime("%a %b.%d"),
+                        time_datetime.strftime("%H:%M:%S"),
+                        time_datetime.strftime("%a %b.%d"),
                         sep="",
                         clip_able=False,
                     ),
@@ -121,44 +121,55 @@ class Combiner:
             ]
         )
 
-    def cpu_info(self) -> Tuple[str, List[Tuple[str, str]]]:
-        return self.cpu.cpu_name[0], tools.get_table(
-            [
-                tools.get_tuple(
-                    strings.cpu_clock,
-                    f"{tools.get_max(self.cpu.clock):.0f}{settings.clock_postfix}",
+    def cpu_info(self) -> List[Tuple[str, List[Tuple[str, str]]]]:
+        return list(
+            (
+                self.cpu.cpu_name[cpu_idx],
+                tools.get_table(
+                    [
+                        tools.get_tuple(
+                            strings.cpu_clock,
+                            f"{tools.get_max(self.cpu.clock[cpu_idx]):.0f}{settings.clock_postfix}",
+                        ),
+                        tools.get_tuple(
+                            strings.cpu_voltage,
+                            f"{tools.get_max(self.cpu.voltage[cpu_idx]):.3f}{settings.voltage_postfix}",
+                        ),
+                        tools.get_tuple(
+                            strings.cpu_power,
+                            f"{self.cpu.power[cpu_idx]:.0f}{settings.power_postfix}",
+                        ),
+                        tools.get_tuple(
+                            strings.cpu_temperature,
+                            tools.get_trend_display(
+                                tools.get_max(self.cpu.temperature[cpu_idx]),
+                                trend_id=f"cpu-{cpu_idx}",
+                                prefix=settings.temperature_postfix,
+                                lowest=30,
+                                highest=100,
+                            ),
+                        ),
+                        tools.get_tuple(
+                            strings.cpu_usage,
+                            tools.get_rate_display(
+                                tools.get_avg(self.cpu.usage[cpu_idx])
+                            ),
+                        ),
+                        tools.get_tuple(
+                            strings.cpu_max_thread_usage,
+                            tools.get_rate_display(
+                                tools.get_max(self.cpu.load[cpu_idx])
+                            ),
+                        ),
+                        tools.get_tuple(
+                            strings.cpu_thread_usage,
+                            tools.get_each_usage(self.cpu.load[cpu_idx]),
+                            clip_val=False,
+                        ),
+                    ]
                 ),
-                tools.get_tuple(
-                    strings.cpu_voltage,
-                    f"{tools.get_max(self.cpu.voltage):.3f}{settings.voltage_postfix}",
-                ),
-                tools.get_tuple(
-                    strings.cpu_power, f"{self.cpu.power:.0f}{settings.power_postfix}"
-                ),
-                tools.get_tuple(
-                    strings.cpu_temperature,
-                    tools.get_trend_display(
-                        tools.get_max(self.cpu.temperature),
-                        trend_id="cpu",
-                        prefix=settings.temperature_postfix,
-                        lowest=30,
-                        highest=100,
-                    ),
-                ),
-                tools.get_tuple(
-                    strings.cpu_usage,
-                    tools.get_rate_display(tools.get_avg(self.cpu.usage)),
-                ),
-                tools.get_tuple(
-                    strings.cpu_max_thread_usage,
-                    tools.get_rate_display(tools.get_max(self.cpu.load)),
-                ),
-                tools.get_tuple(
-                    strings.cpu_thread_usage,
-                    tools.get_each_usage(self.cpu.load),
-                    clip_val=False,
-                ),
-            ]
+            )
+            for cpu_idx in range(self.cpu.cpu_count)
         )
 
     @classmethod
@@ -235,36 +246,13 @@ class Combiner:
         )
 
     def get_info(self) -> List[Tuple[str, List[Tuple[str, str]]]]:
-        self.update()
+        self._update()
 
         return [
             self.outline_info(),
             self.memory_info(),
-            self.cpu_info(),
+            *self.cpu_info(),
             *(self.gpu_info(self.nv_gpu, sub_class="nv") if self.nv_gpu else []),
             *(self.gpu_info(self.gpu, sub_class="general") if self.gpu else []),
             self.network_info(),
         ]
-
-    def update(self):
-        self.time.update()
-        self.cpu.update()
-        if self.gpu:
-            self.gpu.update()
-        if self.nv_gpu:
-            self.nv_gpu.update()
-        self.memory.update()
-        self.network.update()
-        self.frame_time.update()
-
-    def close(self):
-        self.time.dispose()
-        self.cpu.dispose()
-        if self.gpu:
-            self.gpu.dispose()
-        if self.nv_gpu:
-            self.nv_gpu.dispose()
-        self.memory.dispose()
-        self.network.dispose()
-        self.frame_time.dispose()
-        print("Resources released, exiting.")

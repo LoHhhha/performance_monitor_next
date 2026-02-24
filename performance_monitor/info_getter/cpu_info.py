@@ -10,13 +10,16 @@ from LibreHardwareMonitor.Hardware import HardwareType, SensorType  # type: igno
 
 
 class CpuInformation(GeneralHardware):
+    cpu_count: Annotated[int, GeneralHardware.SensorValue]
     cpu_name: Annotated[List[str], GeneralHardware.SensorValue]
-    temperature: Annotated[List[float], GeneralHardware.SensorValue]
-    clock: Annotated[List[float], GeneralHardware.SensorValue]
-    usage: Annotated[List[float], GeneralHardware.SensorValue]
-    load: Annotated[List[float], GeneralHardware.SensorValue]
-    voltage: Annotated[List[float], GeneralHardware.SensorValue]
-    power: Annotated[float, GeneralHardware.SensorValue]
+    temperature: Annotated[List[List[float]], GeneralHardware.SensorValue]
+    clock: Annotated[List[List[float]], GeneralHardware.SensorValue]
+    usage: Annotated[List[List[float]], GeneralHardware.SensorValue]
+    load: Annotated[List[List[float]], GeneralHardware.SensorValue]
+    voltage: Annotated[List[List[float]], GeneralHardware.SensorValue]
+    power: Annotated[List[float], GeneralHardware.SensorValue]
+
+    _available_cpu: List[Hardware.IHardware]
 
     def __init__(self):
         self.clear()
@@ -25,49 +28,65 @@ class CpuInformation(GeneralHardware):
         self.computer.Open()
 
         print("CPU Initialization:")
+        self.cpu_name = []
+        self._available_cpu = []
         for hardware in self.computer.Hardware:
-            print(f"\tFound: {hardware.Name}")
+            if hardware.HardwareType == HardwareType.Cpu:
+                print(f"\tFound: {hardware.Name}")
+                self._available_cpu.append(hardware)
+                self.cpu_name.append(hardware.Name)
+        self.cpu_count = len(self._available_cpu)
 
     @staticmethod
-    def get_value(value, invalid_value=65535.0) -> float:
+    def _get_value(value, invalid_value=65535.0) -> float:
         return value if value is not None else invalid_value
 
     def clear(self):
-        self.cpu_name = []
         self.temperature = []
         self.clock = []
         self.usage = []
         self.load = []
         self.voltage = []
-        self.power = 0
+        self.power = []
 
     def update(self):
         self.clear()
 
-        # self.computer.Update()
-        for hardware in self.computer.Hardware:
+        for hardware in self._available_cpu:
             hardware.Update()
-            if hardware.HardwareType == HardwareType.Cpu:
-                self.cpu_name.append(hardware.Name)
 
-                for sensor in hardware.Sensors:
-                    if sensor.SensorType == SensorType.Temperature:
-                        if "#" in sensor.Name:
-                            self.temperature.append(self.get_value(sensor.Value))
-                    elif sensor.SensorType == SensorType.Clock:
-                        if "#" in sensor.Name:
-                            self.clock.append(self.get_value(sensor.Value))
-                    elif sensor.SensorType == SensorType.Load:
-                        if "#" in sensor.Name:
-                            self.load.append(self.get_value(sensor.Value))
-                        elif "TOTAL" in str(sensor.Name).upper():
-                            self.usage.append(self.get_value(sensor.Value))
-                    elif sensor.SensorType == SensorType.Voltage:
-                        if "#" in sensor.Name:
-                            self.voltage.append(self.get_value(sensor.Value))
-                    elif sensor.SensorType == SensorType.Power:
-                        if "CPU PACKAGE" in str(sensor.Name).upper():
-                            self.power += self.get_value(sensor.Value)
+            total_power = 0
+            temperature = []
+            clock = []
+            load = []
+            usage = []
+            voltage = []
+
+            for sensor in hardware.Sensors:
+                if sensor.SensorType == SensorType.Temperature:
+                    if "#" in sensor.Name:
+                        temperature.append(self._get_value(sensor.Value))
+                elif sensor.SensorType == SensorType.Clock:
+                    if "#" in sensor.Name:
+                        clock.append(self._get_value(sensor.Value))
+                elif sensor.SensorType == SensorType.Load:
+                    if "#" in sensor.Name:
+                        load.append(self._get_value(sensor.Value))
+                    elif "TOTAL" in str(sensor.Name).upper():
+                        usage.append(self._get_value(sensor.Value))
+                elif sensor.SensorType == SensorType.Voltage:
+                    if "#" in sensor.Name:
+                        voltage.append(self._get_value(sensor.Value))
+                elif sensor.SensorType == SensorType.Power:
+                    if "CPU PACKAGE" in str(sensor.Name).upper():
+                        total_power += self._get_value(sensor.Value)
+
+            self.power.append(total_power)
+            self.temperature.append(temperature)
+            self.clock.append(clock)
+            self.load.append(load)
+            self.usage.append(usage)
+            self.voltage.append(voltage)
 
     def dispose(self):
         self.computer.Close()
