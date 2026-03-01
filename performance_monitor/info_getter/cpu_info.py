@@ -64,7 +64,7 @@ class CpuInformation(GeneralHardware):
 
             for sensor in hardware.Sensors:
                 if sensor.SensorType == SensorType.Temperature:
-                    if "#" in sensor.Name:
+                    if "#" in sensor.Name and "TjMax" not in sensor.Name:
                         temperature.append(self._get_value(sensor.Value))
                 elif sensor.SensorType == SensorType.Clock:
                     if "#" in sensor.Name:
