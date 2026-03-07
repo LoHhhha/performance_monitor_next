@@ -56,33 +56,45 @@ class CpuInformation(GeneralHardware):
             hardware.Update()
 
             total_power = 0
-            temperature = []
+            temperature_read_from_core = []
+            temperature_read_from_other = []
             clock = []
             load = []
             usage = []
             voltage = []
 
             for sensor in hardware.Sensors:
+                sensor_name = str(sensor.Name).upper()
                 if sensor.SensorType == SensorType.Temperature:
-                    if "#" in sensor.Name and "TjMax" not in sensor.Name:
-                        temperature.append(self._get_value(sensor.Value))
+                    if "TJMAX" not in sensor_name:
+                        if "#" in sensor_name:
+                            temperature_read_from_core.append(
+                                self._get_value(sensor.Value)
+                            )
+                        else:
+                            temperature_read_from_other.append(
+                                self._get_value(sensor.Value)
+                            )
                 elif sensor.SensorType == SensorType.Clock:
-                    if "#" in sensor.Name:
+                    if "#" in sensor_name:
                         clock.append(self._get_value(sensor.Value))
                 elif sensor.SensorType == SensorType.Load:
-                    if "#" in sensor.Name:
+                    if "#" in sensor_name:
                         load.append(self._get_value(sensor.Value))
-                    elif "TOTAL" in str(sensor.Name).upper():
+                    elif "TOTAL" in sensor_name:
                         usage.append(self._get_value(sensor.Value))
                 elif sensor.SensorType == SensorType.Voltage:
-                    if "#" in sensor.Name:
+                    if "#" in sensor_name:
                         voltage.append(self._get_value(sensor.Value))
                 elif sensor.SensorType == SensorType.Power:
-                    if "CPU PACKAGE" in str(sensor.Name).upper():
+                    if "PACKAGE" in sensor_name:
                         total_power += self._get_value(sensor.Value)
 
             self.power.append(total_power)
-            self.temperature.append(temperature)
+            if temperature_read_from_core:
+                self.temperature.append(temperature_read_from_core)
+            else:
+                self.temperature.append(temperature_read_from_other)
             self.clock.append(clock)
             self.load.append(load)
             self.usage.append(usage)
